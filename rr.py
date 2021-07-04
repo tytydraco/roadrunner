@@ -28,6 +28,10 @@ def usage():
     log('h: show basic usage')
 
 
+def len_of_tar_map(tar_map):
+    return sum([len(tar_map[x]) for x in tar_map.keys()])
+
+
 # Class for handling user selections
 class Selector:
     # Map of tar file paths to tar file content paths
@@ -54,16 +58,12 @@ class Selector:
         # Select recursively via regex pattern
         if cmd == 's':
             self.selected_tar_map = search(self.initial_tar_map, args)
-
-            # Tell the user what we found
-            cnt = sum([len(self.selected_tar_map[x]) for x in self.selected_tar_map.keys()])
+            cnt = len_of_tar_map(self.selected_tar_map)
             log(f'found: {cnt}')
         elif cmd == 'n':
             self.selected_tar_map = search(self.selected_tar_map, args)
-
-            # Tell the user what we found
-            cnt = sum([len(self.selected_tar_map[x]) for x in self.selected_tar_map.keys()])
-            log(f'narrowed to: {cnt}')
+            cnt = len_of_tar_map(self.selected_tar_map)
+            log(f'found: {cnt}')
         # List selected items
         elif cmd == 'l':
             for tar_path in self.selected_tar_map.keys():
