@@ -106,11 +106,11 @@ def enumerate_tars():
             suffixes = pathlib.Path(filename).suffixes
             # Only find files with a tar suffix
             if '.tar' in suffixes:
+                log(f'enumerating {tar_path}')
                 try:
                     tar = tarfile.open(tar_path)
-                    tar_names = tar.getnames()
+                    tar_map[tar_path] = tar.getnames()
                     tar.close()
-                    tar_map[tar_path] = tar_names
                 except tarfile.ReadError:
                     log(f'failed to open {tar_path}, skipping')
     return tar_map
