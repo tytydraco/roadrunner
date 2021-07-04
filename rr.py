@@ -33,6 +33,9 @@ class Selector:
     # i.e.: { '/path/to/test.tar': ['1.txt', '2.txt', etc.] }
     selected_tar_map = {}
 
+    def __init__(self):
+        self.initial_tar_map = enumerate_tars()
+
     # Process user-input from the command line
     def ui(self):
         # Request input
@@ -49,12 +52,17 @@ class Selector:
 
         # Select recursively via regex pattern
         if cmd == 's':
-            tar_paths = enumerate_tars()
-            self.selected_tar_map = search(tar_paths, args)
+            self.selected_tar_map = search(self.initial_tar_map, args)
 
             # Tell the user what we found
             cnt = sum([len(self.selected_tar_map[x]) for x in self.selected_tar_map.keys()])
             log(f'found: {cnt}')
+        elif cmd == 'n':
+            self.selected_tar_map = search(self.selected_tar_map, args)
+
+            # Tell the user what we found
+            cnt = sum([len(self.selected_tar_map[x]) for x in self.selected_tar_map.keys()])
+            log(f'narrowed to: {cnt}')
         # List selected items
         elif cmd == 'l':
             for tar_path in self.selected_tar_map.keys():
@@ -88,34 +96,32 @@ class Selector:
             log(f'unknown action: {cmd}')
 
 
-# Return a list of all tarballs
+# Return a map of all tarballs to their contents
 def enumerate_tars():
-    tar_paths = []
+    tar_map = {}
     for root, _, files in os.walk(self_path):
         for filename in files:
-            full_path = os.path.join(root, filename)
+            tar_path = os.path.join(root, filename)
             suffixes = pathlib.Path(filename).suffixes
             # Only find files with a tar suffix
             if '.tar' in suffixes:
-                tar_paths.append(full_path)
-    return tar_paths
+                tar = tarfile.open(tar_path)
+                tar_names = tar.getnames()
+                tar.close()
+                tar_map[tar_path] = tar_names
+    return tar_map
 
 
-# Return tar-path-to-file-path maps for a regex pattern
-def search(tar_paths, pattern):
-    tar_map = {}
-    for tar_path in tar_paths:
-        tar = tarfile.open(tar_path)
-        tar_names = tar.getnames()
-        tar.close()
-
-        # Accumulate all files that match regex inside tar
+# Narrow an existing search for a regex
+def search(tar_map, pattern):
+    new_tar_map = {}
+    for tar_path in tar_map.keys():
         tar_members = []
-        for tar_name in tar_names:
+        for tar_name in tar_map[tar_path]:
             if re.match(pattern, tar_name) is not None:
                 tar_members.append(tar_name)
-        tar_map[tar_path] = tar_members
-    return tar_map
+        new_tar_map[tar_path] = tar_members
+    return new_tar_map
 
 
 # Main selector loop
