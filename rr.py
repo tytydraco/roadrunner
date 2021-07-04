@@ -21,6 +21,7 @@ def log(text):
 # Display usage to the user
 def usage():
     log('s: select regex pattern')
+    log('n: narrow search further')
     log('x: extract selected items')
     log('r: erase output directory')
     log('q: quit')
